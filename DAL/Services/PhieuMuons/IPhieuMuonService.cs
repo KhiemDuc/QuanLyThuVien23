@@ -20,6 +20,8 @@ namespace DAL.Services.PhieuMuons
         Task<bool> UpdatePhieuMuon(string PhieuMuonId, PhieuMuonCreateInput input);
         Task<bool> DeletePhieuMuonById(string PhieuMuonId);
         List<int> GetNamTrongPhieuMuon();
+        List<int> GetThangTrongPhieuMuon();
+
 
 
     }

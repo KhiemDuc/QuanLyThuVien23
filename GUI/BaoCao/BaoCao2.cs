@@ -49,9 +49,9 @@ namespace GUI.BaoCao
         public void FillChart(int? month = null, int? year = null)
         {
             chartTheLoaiTheoThang.Titles.Clear(); // Xóa các tiêu đề hiện có (nếu có)
-
+            
             var chartTitle = new ChartTitle();
-            chartTitle.Text = "Biểu Đồ Số Lượng Thể Loại Sách Mượn Trong Tháng " + month.ToString() + "/"+year.ToString(); // Đặt nội dung tiêu đề
+            chartTitle.Text = "Biểu Đồ Số Lượng Sách Mượn Trong Tháng " + month.ToString() + "/"+year.ToString() + " (Theo Thể Loại)"; // Đặt nội dung tiêu đề
             chartTheLoaiTheoThang.Titles.Add(chartTitle); // Thêm tiêu đề vào biểu đồ
 
             var tongSachTheoTheLoai = _sachService.GetBookCategoryStatistics(month, year);
@@ -71,18 +71,30 @@ namespace GUI.BaoCao
         public void FillChart2(int? month = null , int? year = null)
         {
             chartSachTheoThang.Titles.Clear(); // Xóa các tiêu đề hiện có (nếu có)
-
+            chartSachTheoThang.Series[0].Points.Clear();
             var chartTitle = new ChartTitle();
-            chartTitle.Text = "Biểu Đồ Số Lượng Sách Mượn Trong Tháng " + month.ToString() +"/"+ year.ToString(); // Đặt nội dung tiêu đề
+            chartTitle.Text = "Biểu Đồ Số Lượng Sách Mượn \nTrong Tháng " + month.ToString() +"/"+ year.ToString() + " (Theo ngày)"; // Đặt nội dung tiêu đề
             chartSachTheoThang.Titles.Add(chartTitle); // Thêm tiêu đề vào biểu đồ
 
             var tongSachTheoTheLoai = _phieumuon_sachService.GetNgayMuonVaSoLuong(month, year);
-            chartSachTheoThang.Series[0].Points.Clear();
-            foreach (var item in tongSachTheoTheLoai)
+
+            for (int day = 1; day < dayInMonth((int)month,(int)year); day++)
             {
-                var point = new SeriesPoint(item.Key, item.Value);
-                chartSachTheoThang.Series[0].Points.Add(point);
-                chartSachTheoThang.Series[0].Name = item.Key.ToString();
+
+                // Nếu có sách trong ngày, thêm giá trị vào biểu đồ
+                if (tongSachTheoTheLoai.ContainsKey(day))
+                {
+                    int count = tongSachTheoTheLoai[day];
+                    var point = new SeriesPoint(day.ToString(), count);
+                    chartSachTheoThang.Series[0].Points.Add(point);
+                }
+                else
+                {
+                   
+                    var point = new SeriesPoint(day.ToString(), 0);
+                    // Nếu không có sách trong ngày, thêm giá trị 0 vào biểu đồ
+                    chartSachTheoThang.Series[0].Points.Add(point);
+                }
             }
 
 
@@ -121,11 +133,21 @@ namespace GUI.BaoCao
         }
         void LoadComBoBox()
         {
-            int currentYear = DateTime.Now.Year;
             List<int> years = _phieuMuonService.GetNamTrongPhieuMuon();
-            cmbNam.DataSource = years;
-            cmbNam.SelectedIndex = cmbNam.Items.IndexOf(currentYear.ToString());
-            cmbThang.SelectedIndex = DateTime.Now.Month - 1;
+            List<int> months = _phieuMuonService.GetThangTrongPhieuMuon();
+
+            foreach(int year in years)
+                cmbNam.Items.Add(year);
+            
+            foreach(int month in months)
+                cmbThang.Items.Add(month);
+
+            int currentMonth = DateTime.Now.Month;
+            int currentYear = DateTime.Now.Year;
+
+            cmbThang.SelectedItem = currentMonth;
+            cmbNam.SelectedItem = currentYear;
+
         }
         private void groupControl1_Paint(object sender, PaintEventArgs e)
         {
@@ -134,13 +156,21 @@ namespace GUI.BaoCao
 
         private void btnTraCuu_Click(object sender, EventArgs e)
         {
-            string selectedValue = cmbNam.SelectedItem.ToString();
-            int month = cmbThang.SelectedIndex + 1;
-            int intValue;
-            if (int.TryParse(selectedValue, out intValue))
+            string selectedValueYear = cmbNam.SelectedItem.ToString();
+            string selectedValueMonth = cmbThang.SelectedItem.ToString();
+
+            
+            int intValueYear;
+            int intValueMonth;
+            if (int.TryParse(selectedValueYear, out intValueYear) && int.TryParse(selectedValueMonth,out intValueMonth))
             {
-                LoadData(month, intValue);
+                LoadData(intValueMonth, intValueYear);
             }
+        }
+        int dayInMonth(int month,int year)
+        {
+           int daysInMonth = DateTime.DaysInMonth(year, month);
+           return daysInMonth;
         }
     }
 }
