@@ -120,28 +120,29 @@ namespace DAL.Services.PhieuMuon_Sach_Sachs
             return await _db.SaveChangesAsync();
         }
         #endregion
-        public Dictionary<int, int> GetNgayMuonVaSoLuong()
+        public Dictionary<int, int> GetNgayMuonVaSoLuong(int? month, int? year)
         {
             var query = from p in _db.PhieuMuons
                         join pm in _db.PhieuMuon_Sachs on p.ID equals pm.ID_PhieuMuon
-                        where p.NgayMuon.HasValue // Đảm bảo có ngày cho mượn
+                        where p.NgayMuon.HasValue && p.NgayMuon.Value.Month == month && p.NgayMuon.Value.Year == year
                         select new
                         {
                             NgayMuon = p.NgayMuon.Value,
                             SoLuong = pm.SoLuong
                         };
 
-            var monthlyData = query.GroupBy(
-                item => new { Month = item.NgayMuon.Month, Year = item.NgayMuon.Year },
+            var dailyData = query.GroupBy(
+                item => item.NgayMuon.Day,
                 (key, group) => new
                 {
-                    Thang = key.Month,
+                    Ngay = key,
                     TotalSoLuong = group.Sum(item => item.SoLuong)
                 })
-                .ToDictionary(item => item.Thang, item => item.TotalSoLuong);
+                .ToDictionary(item => item.Ngay, item => item.TotalSoLuong);
 
-            return monthlyData;
+            return dailyData;
         }
+
         public int GetSoLuongTheLoaiMuonTrongThang(int month, int year)
         {
             var query = from p in _db.PhieuMuons
@@ -151,19 +152,6 @@ namespace DAL.Services.PhieuMuon_Sach_Sachs
                 int totalSoLuong = 0;
             if (query != null)
                 totalSoLuong = query.Sum();
-            return totalSoLuong;
-        }
-
-        public int GetTongSoLuong()
-        {
-            var query = from p in _db.PhieuMuons
-                        join pm in _db.PhieuMuon_Sachs on p.ID equals pm.ID_PhieuMuon
-                        join tt in _db.TrangThai_PhieuMuon on p.ID_TrangThai equals tt.ID // Nối với TrangThai_PhieuMuon
-                        where p.NgayMuon.HasValue && tt.ID != 3 // Đảm bảo có ngày cho mượn và ID Trang Thai khác 3
-                        select pm.SoLuong;
-
-            int totalSoLuong = query.Sum();
-
             return totalSoLuong;
         }
 

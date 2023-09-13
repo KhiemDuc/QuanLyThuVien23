@@ -17,9 +17,9 @@ namespace DAL.Services.PhieuMuon_PhieuMuon_Sachs
         Task<int> CreatePhieuMuon_Sach(PhieuMuon_SachCreateInput input);
         Task<int> UpdatePhieuMuon_Sach(PhieuMuon_SachFilterInput filter, PhieuMuon_SachCreateInput input);
         Task<int> DeletePhieuMuon_SachById(PhieuMuon_SachFilterInput filter);
-        Dictionary<int, int> GetNgayMuonVaSoLuong();
         int getTongSachChoMuon(PhieuMuon_SachFilterInput input = null);
         int GetSoLuongTheLoaiMuonTrongThang(int month, int year);
+        Dictionary<int, int> GetNgayMuonVaSoLuong(int? month, int? year);
         Dictionary<string, int> GetSoLuongSachTrongThang(int? month, int? year );
     }
 }

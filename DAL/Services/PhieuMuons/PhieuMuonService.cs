@@ -223,6 +223,18 @@ namespace DAL.Services.PhieuMuons
             
             return true;
         }
+        public List<int> GetNamTrongPhieuMuon()
+        {
+            var query = from p in _db.PhieuMuons
+                        where p.NgayMuon.HasValue // Đảm bảo có ngày cho mượn
+                        select p.NgayMuon.Value.Year;
+
+            var years = query.Distinct().ToList();
+            years.Sort(); // Sắp xếp theo thứ tự tăng dần
+
+            return years;
+        }
+
 
         //private async Task<int> CreateOrUpdate(PhieuMuonCreateOrUpdateInput input, int Id = 0)
         //{
